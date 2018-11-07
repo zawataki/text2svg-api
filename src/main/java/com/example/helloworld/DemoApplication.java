@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.stream.Collectors;
 
 @Controller
@@ -30,7 +29,7 @@ public class DemoApplication {
     @ResponseBody
     String textToSvg(@RequestParam String url) throws IOException {
 
-        final Resource resource = resourceLoader.getResource("classpath:" + Paths.get("static", "sample.svg"));
+        final Resource resource = resourceLoader.getResource("classpath:/static/sample.svg");
         final String fileContents = Files.lines(resource.getFile().toPath()).collect(Collectors.joining());
 
         return fileContents;
