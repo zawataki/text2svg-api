@@ -1,9 +1,7 @@
 package com.example.helloworld;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,9 +11,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @SpringBootApplication
 public class DemoApplication {
 
-    @Autowired
-    protected ResourceLoader resourceLoader;
-
     public static void main(String[] args) {
         SpringApplication.run(DemoApplication.class, args);
     }
@@ -23,18 +18,27 @@ public class DemoApplication {
     @GetMapping(value = "/", produces = "image/svg+xml")
     @ResponseBody
     String textToSvg(@RequestParam String url) {
+        return convertToSvg(url);
+    }
 
-        final String svg = "<svg xmlns=\"http://www.w3.org/2000/svg\"\n" +
-                "     width=\"500\" height=\"40\" viewBox=\"0 0 500 40\">\n" +
+    private String convertToSvg(String text) {
+
+        final int fontSize = 30;
+        final int width = fontSize * text.length();
+        final int height = fontSize + 10;
+
+        // Same with GitHub code font
+        final String fontFamily =
+                "SFMono-Regular,Consolas,Liberation Mono,Menlo,Courier,monospace";
+
+        return "<svg xmlns=\"http://www.w3.org/2000/svg\"\n" +
+                "     width=\"" + width + "\" height=\"" + height + "\">\n" +
                 "\n" +
-                "    <rect fill=\"#fff\" id=\"canvas_background\" width=\"500\" height=\"40\" y=\"0\"\n" +
-                "          x=\"0\"/>\n" +
-                "\n" +
-                "    <text x=\"0\" y=\"35\" font-family=\"Verdana\" font-size=\"35\">\n" +
-                "        Hello, World\n" +
+                "    <text x=\"0\" y=\"0\" dominant-baseline=\"text-before-edge\"\n" +
+                "          font-family=\"" + fontFamily + "\"\n" +
+                "          font-size=\"" + fontSize + "\">\n" +
+                "        " + text + "\n" +
                 "    </text>\n" +
                 "</svg>\n";
-
-        return svg;
     }
 }
