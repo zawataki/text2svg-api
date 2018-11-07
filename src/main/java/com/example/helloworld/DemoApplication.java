@@ -20,7 +20,7 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
-    @GetMapping("/")
+    @GetMapping(value = "/", produces = "image/svg+xml")
     @ResponseBody
     String textToSvg(@RequestParam String url) {
 
