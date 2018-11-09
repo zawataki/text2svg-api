@@ -1,5 +1,6 @@
 package com.example.helloworld;
 
+import net.rossillo.spring.web.mvc.CacheControl;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,7 @@ public class DemoApplication {
         SpringApplication.run(DemoApplication.class, args);
     }
 
+    @CacheControl(maxAge = 60)
     @GetMapping(value = "/", produces = "image/svg+xml")
     @ResponseBody
     String textToSvg(@RequestParam String url) {

@@ -43,6 +43,12 @@
             <artifactId>jfreesvg</artifactId>
             <version>3.3</version>
         </dependency>
+
+        <dependency>
+            <groupId>net.rossillo.mvc.cache</groupId>
+            <artifactId>spring-mvc-cache-control</artifactId>
+            <version>1.1.1-RELEASE</version>
+        </dependency>
     </dependencies>
 
     <build>
