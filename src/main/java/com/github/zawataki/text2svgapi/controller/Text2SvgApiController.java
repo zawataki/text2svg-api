@@ -1,4 +1,4 @@
-package com.example.helloworld;
+package com.github.zawataki.text2svgapi.controller;
 
 import net.rossillo.spring.web.mvc.CacheControl;
 import org.springframework.boot.SpringApplication;
@@ -7,14 +7,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
-@SpringBootApplication
-public class DemoApplication {
-
-    public static void main(String[] args) {
-        SpringApplication.run(DemoApplication.class, args);
-    }
+@RestController
+public class Text2SvgApiController {
 
     @CacheControl(maxAge = 60)
     @GetMapping(value = "/", produces = "image/svg+xml")
