@@ -1,4 +1,4 @@
-package com.example.helloworld;
+package com.github.zawataki.text2svgapi.config;
 
 import net.rossillo.spring.web.mvc.CacheControlHandlerInterceptor;
 import org.springframework.context.annotation.Configuration;
