@@ -21,7 +21,7 @@ public class Text2SvgServiceTests {
     @Test
     public void convertToSvg() {
         final String inputText = "Hello";
-        final String svg = text2SvgService.convertToSvg(inputText);
+        final String svg = text2SvgService.convertTextToSvg(inputText);
 
         assertThat("Returned string does NOT start with svg tag", svg,
                 startsWith("<svg "));

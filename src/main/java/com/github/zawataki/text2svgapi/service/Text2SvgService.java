@@ -1,7 +1,11 @@
 package com.github.zawataki.text2svgapi.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.net.URL;
+
+@Slf4j
 @Service
 public class Text2SvgService {
 
@@ -10,7 +14,7 @@ public class Text2SvgService {
      *
      * @return a string representing SVG element
      */
-    public String convertToSvg(String text) {
+    public String convertTextToSvg(String text) {
 
         final int fontSize = 14;
         final int width = fontSize * text.length();
@@ -26,5 +30,16 @@ public class Text2SvgService {
                 "          font-family=\"" + fontFamily + "\"\n" +
                 "          font-size=\"" + fontSize + "\">\n" + "        " +
                 text + "\n" + "    </text>\n" + "</svg>\n";
+    }
+
+    /**
+     * @param url a URL representing a text file to convert to SVG
+     *
+     * @return a string representing SVG element
+     */
+    public String convertUrlToSvg(URL url) {
+        log.info("A given URL = " + url);
+        // TODO Implements
+        return "";
     }
 }
