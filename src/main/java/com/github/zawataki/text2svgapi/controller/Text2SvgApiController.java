@@ -1,9 +1,6 @@
 package com.github.zawataki.text2svgapi.controller;
 
 import net.rossillo.spring.web.mvc.CacheControl;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -21,7 +18,7 @@ public class Text2SvgApiController {
 
     private String convertToSvg(String text) {
 
-        final int fontSize = 30;
+        final int fontSize = 14;
         final int width = fontSize * text.length();
         final int height = fontSize + 10;
 
