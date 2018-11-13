@@ -56,7 +56,7 @@ public class Text2SvgApiController {
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ResponseBody
-    public Map<String, Object> handleIllegalArgumentException(
+    private Map<String, Object> handleIllegalArgumentException(
             IllegalArgumentException e) {
 
         // TODO See to: https://www.eisbahn.jp/yoichiro/2017/01/rfc_7807.html

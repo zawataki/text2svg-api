@@ -6,11 +6,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.net.URL;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -31,6 +34,9 @@ public class Text2SvgApiControllerTests {
     private Text2SvgService text2SvgService;
 
     private final String API_ENDPOINT = "/";
+    private final String NORMAL_CONTENT_TYPE = "image/svg+xml;charset=UTF-8";
+    private final String ERROR_CONTENT_TYPE =
+            MediaType.APPLICATION_JSON_UTF8_VALUE;
 
     @Test
     public void convertNormalText() throws Exception {
@@ -39,9 +45,9 @@ public class Text2SvgApiControllerTests {
 
         mockMvc.perform(get(API_ENDPOINT).param("text", "hoge"))
                 .andDo(print())
-                .andExpect(header().exists("Cache-Control"))
-                .andExpect(header().string("Content-Type",
-                        "image/svg+xml;charset=UTF-8"))
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        NORMAL_CONTENT_TYPE))
                 .andExpect(status().isOk())
                 .andExpect(content().string("<svg><text>Hello</text></svg>"));
     }
@@ -55,9 +61,25 @@ public class Text2SvgApiControllerTests {
         mockMvc.perform(
                 get(API_ENDPOINT).param("text", "foo").param("url", "bar"))
                 .andDo(print())
-                .andExpect(header().exists("Cache-Control"))
-                .andExpect(header().string("Content-Type",
-                        "application/json;charset=UTF-8"))
-                .andExpect(status().isBadRequest());
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passNoParameter() throws Exception {
+        when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
+                "<svg><text>Hello</text></svg>");
+        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn("");
+
+        mockMvc.perform(get(API_ENDPOINT))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
     }
 }
