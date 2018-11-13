@@ -1,4 +1,6 @@
 # text2svg-api
+[![Build Status](https://travis-ci.com/zawataki/text2svg-api.svg?branch=master)](https://travis-ci.com/zawataki/text2svg-api)
+
 API for converting text to SVG
 
 # How to use
