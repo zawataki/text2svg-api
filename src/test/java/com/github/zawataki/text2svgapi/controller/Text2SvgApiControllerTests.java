@@ -43,7 +43,7 @@ public class Text2SvgApiControllerTests {
         when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
                 "<svg><text>Hello</text></svg>");
 
-        mockMvc.perform(get(API_ENDPOINT).param("text", "hoge"))
+        mockMvc.perform(get(API_ENDPOINT).param("text", "foo"))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
@@ -75,7 +75,7 @@ public class Text2SvgApiControllerTests {
         when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn(
                 response);
 
-        mockMvc.perform(get(API_ENDPOINT).param("url", "hoge"))
+        mockMvc.perform(get(API_ENDPOINT).param("url", "foo"))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,

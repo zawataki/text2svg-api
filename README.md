@@ -6,8 +6,8 @@ API for converting text to SVG
 # How to use
 You can write like the following,
 ```html
-<img src='https://text2svg-api.herokuapp.com/?url=Hello%20world!' />
+<img src='https://text2svg-api.herokuapp.com/?text=Hello%20world!' />
 ```
 and show like the following:
 
-<img src='https://text2svg-api.herokuapp.com/?url=Hello%20world!' />
+<img src='https://text2svg-api.herokuapp.com/?text=Hello%20world!' />

@@ -2,7 +2,9 @@ package com.github.zawataki.text2svgapi.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.net.URISyntaxException;
 import java.net.URL;
 
 @Slf4j
@@ -11,7 +13,6 @@ public class Text2SvgService {
 
     /**
      * @param text a text to convert to SVG
-     *
      * @return a string representing SVG element
      */
     public String convertTextToSvg(String text) {
@@ -34,12 +35,22 @@ public class Text2SvgService {
 
     /**
      * @param url a URL representing a text file to convert to SVG
-     *
      * @return a string representing SVG element
      */
     public String convertUrlToSvg(URL url) {
         log.info("A given URL = " + url);
-        // TODO Implements
-        return "";
+
+        // TODO Specify line number
+        final RestTemplate restTemplate = new RestTemplate();
+        final String content;
+        try {
+            content = restTemplate.getForObject(url.toURI(), String.class);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URL: " + url, e);
+        }
+
+        log.info("content: " + content);
+
+        return convertTextToSvg(content);
     }
 }

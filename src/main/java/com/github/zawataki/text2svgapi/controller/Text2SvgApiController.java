@@ -29,7 +29,9 @@ public class Text2SvgApiController {
     @GetMapping(value = "/", produces = "image/svg+xml")
     @ResponseBody
     String textToSvg(@RequestParam(required = false) String text,
-            @RequestParam(required = false) String url) {
+            @RequestParam(required = false) String url,
+            // TODO Process 'line' parameter
+            @RequestParam(required = false) String line) {
 
         if (StringUtils.isAllBlank(text, url)) {
             throw new IllegalArgumentException(
@@ -49,7 +51,7 @@ public class Text2SvgApiController {
             return text2SvgService.convertUrlToSvg(new URL(url));
         } catch (MalformedURLException e) {
             log.error("Invalid URL", e);
-            throw new IllegalArgumentException("Invalid 'url' parameter");
+            throw new IllegalArgumentException("Invalid 'url' parameter", e);
         }
     }
 
