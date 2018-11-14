@@ -59,8 +59,6 @@ public class Text2SvgApiController {
     private Map<String, Object> handleIllegalArgumentException(
             IllegalArgumentException e) {
 
-        // TODO See to: https://www.eisbahn.jp/yoichiro/2017/01/rfc_7807.html
-        // See to: https://tools.ietf.org/html/rfc7807#section-2
         Map<String, Object> errorMap = new HashMap<>();
         errorMap.put("message", e.getMessage());
         return errorMap;

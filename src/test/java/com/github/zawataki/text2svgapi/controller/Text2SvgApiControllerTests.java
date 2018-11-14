@@ -53,6 +53,38 @@ public class Text2SvgApiControllerTests {
     }
 
     @Test
+    public void convertNormalUrl() throws Exception {
+        final String response = "<svg><text>Hello</text></svg>";
+        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn(
+                response);
+
+        final String normalUrl =
+                "https://raw.githubusercontent.com/zawataki/text2svg-api/master/build.gradle";
+        mockMvc.perform(get(API_ENDPOINT).param("url", normalUrl))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        NORMAL_CONTENT_TYPE))
+                .andExpect(status().isOk())
+                .andExpect(content().string(response));
+    }
+
+    @Test
+    public void convertNonUrl() throws Exception {
+        final String response = "<svg><text>Hello</text></svg>";
+        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn(
+                response);
+
+        mockMvc.perform(get(API_ENDPOINT).param("url", "hoge"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
     public void passAllParameters() throws Exception {
         when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
                 "<svg><text>Hello</text></svg>");
