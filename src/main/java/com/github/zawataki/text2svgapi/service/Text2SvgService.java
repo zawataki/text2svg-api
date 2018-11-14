@@ -4,8 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -13,6 +16,7 @@ public class Text2SvgService {
 
     /**
      * @param text a text to convert to SVG
+     *
      * @return a string representing SVG element
      */
     public String convertTextToSvg(String text) {
@@ -35,6 +39,7 @@ public class Text2SvgService {
 
     /**
      * @param url a URL representing a text file to convert to SVG
+     *
      * @return a string representing SVG element
      */
     public String convertUrlToSvg(URL url) {
@@ -49,8 +54,41 @@ public class Text2SvgService {
             throw new IllegalArgumentException("Invalid URL: " + url, e);
         }
 
-        log.info("content: " + content);
+        final String targetContent = multipleLineStringToSvg(content);
+        log.info("content: " + targetContent);
 
-        return convertTextToSvg(content);
+        return convertTextToSvg(targetContent);
     }
+
+    public String convertUrlToSvg(URL url, BigInteger startLineNumber,
+            BigInteger endLineNumber) {
+
+        final RestTemplate restTemplate = new RestTemplate();
+        final String content;
+        try {
+            content = restTemplate.getForObject(url.toURI(), String.class);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException("Invalid URL: " + url, e);
+        }
+
+        final String targetContent = multipleLineStringToSvg(content);
+        log.info("targetContent: " + targetContent);
+
+        return convertTextToSvg(targetContent);
+    }
+
+    private String multipleLineStringToSvg(String multipleLineString) {
+
+        if (multipleLineString == null) {
+            return "";
+        }
+
+        final String[] lines =
+                multipleLineString.replaceAll("\\r\\n", "\n").split("\\n");
+
+        return Stream.of(lines)
+                .map(line -> "<tspan dy=\"1.2em\" x=\"0\">" + line + "</tspan>")
+                .collect(Collectors.joining());
+    }
+
 }

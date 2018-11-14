@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.validation.constraints.Pattern;
+import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
@@ -25,34 +27,51 @@ public class Text2SvgApiController {
     @Autowired
     Text2SvgService text2SvgService;
 
-    @CacheControl(maxAge = 60)
-    @GetMapping(value = "/", produces = "image/svg+xml")
+    /**
+     * Cache max expiration period (seconds)
+     */
+    private final int CACHE_MAX_AGE = 180;
+
+    @CacheControl(maxAge = CACHE_MAX_AGE)
+    @GetMapping(value = "/text", produces = "image/svg+xml")
     @ResponseBody
-    String textToSvg(@RequestParam(required = false) String text,
-            @RequestParam(required = false) String url,
-            // TODO Process 'line' parameter
-            @RequestParam(required = false) String line) {
+    String textToSvg(@RequestParam String text) {
 
-        if (StringUtils.isAllBlank(text, url)) {
-            throw new IllegalArgumentException(
-                    "'text' or 'url' is required parameter");
+        if (StringUtils.isBlank(text)) {
+            throw new IllegalArgumentException("'text' is required parameter");
         }
 
-        if (StringUtils.isNoneBlank(text, url)) {
-            throw new IllegalArgumentException(
-                    "'text' and 'url' must not be specified at same time");
+        return text2SvgService.convertTextToSvg(text);
+    }
+
+    @CacheControl(maxAge = CACHE_MAX_AGE)
+    @GetMapping(value = "/url", produces = "image/svg+xml")
+    @ResponseBody
+    String urlToSvg(@RequestParam String url, @RequestParam(required = false)
+    @Pattern(regexp = "\\d+(-\\d+)?") String line) {
+
+        if (StringUtils.isBlank(url)) {
+            throw new IllegalArgumentException("'url' is required parameter");
         }
 
-        if (StringUtils.isNotBlank(text)) {
-            return text2SvgService.convertTextToSvg(text);
-        }
-
+        final URL convertedUrl;
         try {
-            return text2SvgService.convertUrlToSvg(new URL(url));
+            convertedUrl = new URL(url);
         } catch (MalformedURLException e) {
             log.error("Invalid URL", e);
             throw new IllegalArgumentException("Invalid 'url' parameter", e);
         }
+
+        final String[] strings = line.split("-");
+        if (strings.length != 2) {
+            throw new IllegalArgumentException(
+                    "'line' parameter must contains only two integers");
+        }
+        final BigInteger startLineNumber = new BigInteger(strings[0]);
+        final BigInteger endLineNumber = new BigInteger(strings[1]);
+
+        return text2SvgService.convertUrlToSvg(convertedUrl, startLineNumber,
+                endLineNumber);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
