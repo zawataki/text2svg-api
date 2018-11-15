@@ -14,8 +14,12 @@ import java.util.stream.Stream;
 @Service
 public class Text2SvgService {
 
+    public final static BigInteger LIMIT_NUMBER_OF_LINE =
+            BigInteger.valueOf(1000);
+
     /**
      * @param text a text to convert to SVG
+     *
      * @return a string representing SVG element
      */
     public String convertTextToSvg(String text) {
@@ -38,6 +42,7 @@ public class Text2SvgService {
 
     /**
      * @param url a URL representing a text file to convert to SVG
+     *
      * @return a string representing SVG element
      */
     public String convertUrlToSvg(URL url) {
@@ -61,8 +66,9 @@ public class Text2SvgService {
     /**
      * @param url the URL representing a text file to convert to SVG
      * @param startLineNumber the start line number
-     * @param endLineNumber the end line number. if null, regards as end
-     *         of file
+     * @param endLineNumber the end line number. if null, regards as end of
+     * file
+     *
      * @return a string representing SVG element
      */
     public String convertUrlToSvg(URL url, BigInteger startLineNumber,

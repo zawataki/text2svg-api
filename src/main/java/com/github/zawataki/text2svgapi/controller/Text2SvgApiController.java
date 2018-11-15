@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.github.zawataki.text2svgapi.service.Text2SvgService.LIMIT_NUMBER_OF_LINE;
+
 @Slf4j
 @RestController
 public class Text2SvgApiController {
@@ -79,7 +81,6 @@ public class Text2SvgApiController {
         final BigInteger endLineNumber = matcher.groupCount() >= groupNumber ?
                 new BigInteger(matcher.group(groupNumber)) :
                 null;
-        final BigInteger LIMIT_NUMBER_OF_LINE = BigInteger.valueOf(1000);
         if (endLineNumber != null) {
             if (endLineNumber.compareTo(startLineNumber) < 0) {
                 throw new IllegalArgumentException(
@@ -87,14 +88,14 @@ public class Text2SvgApiController {
                                 startLineNumber + ", end line number = " +
                                 endLineNumber);
             }
-            if (endLineNumber.subtract(startLineNumber).add(BigInteger.ONE)
+            if (endLineNumber.subtract(startLineNumber)
+                    .add(BigInteger.ONE)
                     .compareTo(LIMIT_NUMBER_OF_LINE) > 0) {
                 throw new IllegalArgumentException(
                         "Number of target line must be less than or equal to " +
                                 LIMIT_NUMBER_OF_LINE +
                                 ". start line number = " + startLineNumber +
-                                ", end line number = " +
-                                endLineNumber);
+                                ", end line number = " + endLineNumber);
             }
         }
         return text2SvgService.convertUrlToSvg(convertedUrl, startLineNumber,
