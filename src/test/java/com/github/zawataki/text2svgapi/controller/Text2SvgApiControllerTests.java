@@ -1,6 +1,7 @@
 package com.github.zawataki.text2svgapi.controller;
 
 import com.github.zawataki.text2svgapi.service.Text2SvgService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigInteger;
 import java.net.URL;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -33,50 +35,57 @@ public class Text2SvgApiControllerTests {
     @MockBean
     private Text2SvgService text2SvgService;
 
-    private final String API_ENDPOINT_TEXT = "/text";
-    private final String API_ENDPOINT_URL = "/url";
-    private final String NORMAL_CONTENT_TYPE = "image/svg+xml;charset=UTF-8";
-    private final String ERROR_CONTENT_TYPE =
+    private static final String SVG_ELEMENT_STR_FROM_TEXT =
+            "<svg><text>Hello</text></svg>";
+    private static final String SVG_ELEMENT_STR_FROM_URL =
+            "<svg><text>URL</text></svg>";
+    private static final String SVG_ELEMENT_STR_FROM_URL_AND_LINE =
+            "<svg><text>URL with line</text></svg>";
+    private static final String API_ENDPOINT = "/svg";
+    private static final String NORMAL_CONTENT_TYPE =
+            "image/svg+xml;charset=UTF-8";
+    private static final String ERROR_CONTENT_TYPE =
             MediaType.APPLICATION_JSON_UTF8_VALUE;
+    private static final String NORMAL_URL =
+            "https://raw.githubusercontent.com/zawataki/text2svg-api/master/build.gradle";
+
+    @Before
+    public void setUp() {
+        when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
+                SVG_ELEMENT_STR_FROM_TEXT);
+        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn(
+                SVG_ELEMENT_STR_FROM_URL);
+        when(text2SvgService.convertUrlToSvg(any(URL.class),
+                any(BigInteger.class), any(BigInteger.class))).thenReturn(
+                SVG_ELEMENT_STR_FROM_URL_AND_LINE);
+    }
 
     @Test
     public void convertNormalText() throws Exception {
-        when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
-                "<svg><text>Hello</text></svg>");
-
-        mockMvc.perform(get(API_ENDPOINT_TEXT).param("text", "foo"))
+        mockMvc.perform(get(API_ENDPOINT).param("text", "foo"))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
                         NORMAL_CONTENT_TYPE))
                 .andExpect(status().isOk())
-                .andExpect(content().string("<svg><text>Hello</text></svg>"));
+                .andExpect(content().string(SVG_ELEMENT_STR_FROM_TEXT));
     }
 
     @Test
     public void convertNormalUrl() throws Exception {
-        final String response = "<svg><text>Hello</text></svg>";
-        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn(
-                response);
 
-        final String normalUrl =
-                "https://raw.githubusercontent.com/zawataki/text2svg-api/master/build.gradle";
-        mockMvc.perform(get(API_ENDPOINT_URL).param("url", normalUrl))
+        mockMvc.perform(get(API_ENDPOINT).param("url", NORMAL_URL))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
                         NORMAL_CONTENT_TYPE))
                 .andExpect(status().isOk())
-                .andExpect(content().string(response));
+                .andExpect(content().string(SVG_ELEMENT_STR_FROM_URL));
     }
 
     @Test
     public void convertNonUrl() throws Exception {
-        final String response = "<svg><text>Hello</text></svg>";
-        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn(
-                response);
-
-        mockMvc.perform(get(API_ENDPOINT_URL).param("url", "foo"))
+        mockMvc.perform(get(API_ENDPOINT).param("url", "foo"))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
@@ -87,12 +96,10 @@ public class Text2SvgApiControllerTests {
 
     @Test
     public void passAllParameters() throws Exception {
-        when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
-                "<svg><text>Hello</text></svg>");
-        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn("");
-
         mockMvc.perform(
-                get(API_ENDPOINT_TEXT).param("text", "foo").param("url", "bar"))
+                get(API_ENDPOINT).param("text", "foo")
+                        .param("url", "bar")
+                        .param("line", "2-4"))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
@@ -103,16 +110,115 @@ public class Text2SvgApiControllerTests {
 
     @Test
     public void passNoParameter() throws Exception {
-        when(text2SvgService.convertTextToSvg(anyString())).thenReturn(
-                "<svg><text>Hello</text></svg>");
-        when(text2SvgService.convertUrlToSvg(any(URL.class))).thenReturn("");
-
-        mockMvc.perform(get(API_ENDPOINT_TEXT))
+        mockMvc.perform(get(API_ENDPOINT))
                 .andDo(print())
                 .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
                         ERROR_CONTENT_TYPE))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterContainsNonNumber() throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL).param("line", "a"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterContainsNonNumberWithHyphen()
+            throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL).param("line", "a-b"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterStartsWithZero() throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL).param("line", "0-3"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterStartsWithHyphen() throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL).param("line", "-3"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterNumOfLineIsGreaterThan1000() throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL)
+                        .param("line", "1-1001"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterNumOfLineEqualsTo1000() throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL)
+                        .param("line", "1001-2000"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        NORMAL_CONTENT_TYPE))
+                .andExpect(status().isOk())
+                .andExpect(content().string(SVG_ELEMENT_STR_FROM_URL_AND_LINE));
+    }
+
+    @Test
+    public void passLineParameterEndLineNumIsGreaterThanStartLineNum()
+            throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL)
+                        .param("line", "15-14"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        ERROR_CONTENT_TYPE))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(containsString("message")));
+    }
+
+    @Test
+    public void passLineParameterEndLineNumEqualsToStartLineNum()
+            throws Exception {
+        mockMvc.perform(
+                get(API_ENDPOINT).param("url", NORMAL_URL)
+                        .param("line", "15-15"))
+                .andDo(print())
+                .andExpect(header().exists(HttpHeaders.CACHE_CONTROL))
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE,
+                        NORMAL_CONTENT_TYPE))
+                .andExpect(status().isOk())
+                .andExpect(content().string(SVG_ELEMENT_STR_FROM_URL_AND_LINE));
     }
 }
