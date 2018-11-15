@@ -1,14 +1,19 @@
 package com.github.zawataki.text2svgapi.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.HtmlUtils;
 
 import java.math.BigInteger;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -25,8 +30,17 @@ public class Text2SvgService {
     public String convertTextToSvg(String text) {
 
         final int fontSize = 14;
-        final int width = fontSize * text.length();
-        final int height = fontSize + 10;
+        final List<String> multiLineSvgStr =
+                multipleLineStringToSvg(text, fontSize);
+
+        final Integer maxLineLength = multiLineSvgStr.parallelStream()
+                .max(Comparator.comparingInt(String::length))
+                .map(s -> s.length())
+                .orElse(0);
+
+        final int width = fontSize * maxLineLength;
+        final int heightMargin = 10;
+        final int height = fontSize * multiLineSvgStr.size() + heightMargin;
 
         // Same with GitHub code font
         final String fontFamily =
@@ -37,7 +51,8 @@ public class Text2SvgService {
                 "    <text x=\"0\" y=\"0\" dominant-baseline=\"text-before-edge\"\n" +
                 "          font-family=\"" + fontFamily + "\"\n" +
                 "          font-size=\"" + fontSize + "\">\n" + "        " +
-                text + "\n" + "    </text>\n" + "</svg>\n";
+                String.join(StringUtils.LF, multiLineSvgStr) + "\n" +
+                "    </text>\n" + "</svg>\n";
     }
 
     /**
@@ -46,21 +61,7 @@ public class Text2SvgService {
      * @return a string representing SVG element
      */
     public String convertUrlToSvg(URL url) {
-        log.info("A given URL = " + url);
-
-        // TODO Specify line number
-        final RestTemplate restTemplate = new RestTemplate();
-        final String content;
-        try {
-            content = restTemplate.getForObject(url.toURI(), String.class);
-        } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("Invalid URL: " + url, e);
-        }
-
-        final String targetContent = multipleLineStringToSvg(content);
-        log.info("content: " + targetContent);
-
-        return convertTextToSvg(targetContent);
+        return convertUrlToSvg(url, BigInteger.ONE, LIMIT_NUMBER_OF_LINE);
     }
 
     /**
@@ -74,6 +75,8 @@ public class Text2SvgService {
     public String convertUrlToSvg(URL url, BigInteger startLineNumber,
             BigInteger endLineNumber) {
 
+        log.info("Convert from URL = " + url);
+
         final RestTemplate restTemplate = new RestTemplate();
         final String content;
         try {
@@ -82,24 +85,56 @@ public class Text2SvgService {
             throw new IllegalArgumentException("Invalid URL: " + url, e);
         }
 
-        final String targetContent = multipleLineStringToSvg(content);
-        log.info("targetContent: " + targetContent);
+        final String targetLines = splitByNewLine(content).stream()
+                .skip(startLineNumber.subtract(BigInteger.ONE).longValue())
+                .limit(endLineNumber.subtract(startLineNumber)
+                        .add(BigInteger.ONE)
+                        .longValue())
+                .collect(Collectors.joining(StringUtils.LF));
 
-        return convertTextToSvg(targetContent);
+        return convertTextToSvg(targetLines);
     }
 
-    private String multipleLineStringToSvg(String multipleLineString) {
+    private List<String> splitByNewLine(String multipleLineString) {
 
         if (multipleLineString == null) {
-            return "";
+            return new ArrayList<>();
         }
 
-        final String[] lines =
-                multipleLineString.replaceAll("\\r\\n", "\n").split("\\n");
+        return Arrays.asList(
+                multipleLineString.replaceAll("\\r\\n", StringUtils.LF)
+                        .split("\\n"));
+    }
 
-        return Stream.of(lines)
-                .map(line -> "<tspan dy=\"1.2em\" x=\"0\">" + line + "</tspan>")
-                .collect(Collectors.joining());
+    private List<String> multipleLineStringToSvg(String multipleLineString,
+            int fontSize) {
+
+        if (multipleLineString == null) {
+            return new ArrayList<>();
+        }
+
+        int i = 0, jackpot = 0;
+        final List<String> svgStrings = new ArrayList<>();
+        for (String line : splitByNewLine(multipleLineString)) {
+
+            // a shift along the y-axis on the position from prev element
+            final int shiftPositionY = i == 0 || StringUtils.isBlank(line) ?
+                    0 :
+                    fontSize + jackpot;
+
+            svgStrings.add("<tspan dy=\"" + shiftPositionY + "\" x=\"0\">" +
+                    HtmlUtils.htmlEscape(line) + "</tspan>");
+
+            if (StringUtils.isBlank(line)) {
+                jackpot += fontSize;
+            } else {
+                jackpot = 0;
+            }
+
+            i++;
+        }
+
+        return svgStrings;
     }
 
 }
