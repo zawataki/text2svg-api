@@ -20,12 +20,12 @@ show like the following:
 If you write like this,
 
 ```html
-<img src='https://text2svg-api.herokuapp.com/svg?url=https://raw.githubusercontent.com/zawataki/text2svg-api/master/README.md' />
+<img src='https://text2svg-api.herokuapp.com/svg?url=https://raw.githubusercontent.com/zawataki/text2svg-api/master/README.md' height="500" />
 ```
 
 show like the following:
 
-<img src='https://text2svg-api.herokuapp.com/svg?url=https://raw.githubusercontent.com/zawataki/text2svg-api/master/README.md' />
+<img src='https://text2svg-api.herokuapp.com/svg?url=https://raw.githubusercontent.com/zawataki/text2svg-api/master/README.md' height="200%" width="200%" />
 
 ### Convert from URL with line number
 If you write like this,
