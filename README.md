@@ -1,3 +1,5 @@
+# NOTE: This API is unavailable now due to [Heroku free plan ending](https://blog.heroku.com/next-chapter).
+
 # text2svg-api
 [![Build Status](https://travis-ci.com/zawataki/text2svg-api.svg?branch=master)](https://travis-ci.com/zawataki/text2svg-api)
 
